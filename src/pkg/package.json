@@ -1,0 +1,14 @@
+{
+  "name": "nenkin",
+  "version": "0.1.0",
+  "files": [
+    "nenkin_bg.wasm",
+    "nenkin.js",
+    "nenkin.d.ts"
+  ],
+  "module": "nenkin.js",
+  "types": "nenkin.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
