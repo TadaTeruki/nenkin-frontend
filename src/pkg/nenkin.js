@@ -36,6 +36,20 @@ function getInt32Memory0() {
     return cachedInt32Memory0;
 }
 
+let cachedUint32Memory0 = null;
+
+function getUint32Memory0() {
+    if (cachedUint32Memory0 === null || cachedUint32Memory0.byteLength === 0) {
+        cachedUint32Memory0 = new Uint32Array(wasm.memory.buffer);
+    }
+    return cachedUint32Memory0;
+}
+
+function getArrayU32FromWasm0(ptr, len) {
+    ptr = ptr >>> 0;
+    return getUint32Memory0().subarray(ptr / 4, ptr / 4 + len);
+}
+
 function isLikeNone(x) {
     return x === undefined || x === null;
 }
@@ -62,23 +76,47 @@ export class Network {
         wasm.__wbg_network_free(ptr);
     }
     /**
+     * @param {number} from
+     * @param {number} to
+     * @returns {Uint32Array | undefined}
+     */
+    seartch_path(from, to) {
+        try {
+            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+            wasm.network_seartch_path(retptr, this.__wbg_ptr, from, to);
+            var r0 = getInt32Memory0()[retptr / 4 + 0];
+            var r1 = getInt32Memory0()[retptr / 4 + 1];
+            let v1;
+            if (r0 !== 0) {
+                v1 = getArrayU32FromWasm0(r0, r1).slice();
+                wasm.__wbindgen_free(r0, r1 * 4, 4);
+            }
+            return v1;
+        } finally {
+            wasm.__wbindgen_add_to_stack_pointer(16);
+        }
+    }
+    /**
      * @param {number} x
      * @param {number} y
-     * @returns {Network}
+     * @param {number} prev_x
+     * @param {number} prev_y
+     */
+    set_wall(x, y, prev_x, prev_y) {
+        wasm.network_set_wall(this.__wbg_ptr, x, y, prev_x, prev_y);
+    }
+    /**
+     * @param {number} x
+     * @param {number} y
      */
     set_start(x, y) {
-        const ptr = this.__destroy_into_raw();
-        const ret = wasm.network_set_start(ptr, x, y);
-        return Network.__wrap(ret);
+        wasm.network_set_start(this.__wbg_ptr, x, y);
     }
     /**
      * @param {number} lifetime
-     * @returns {Network}
      */
     set_lifetime(lifetime) {
-        const ptr = this.__destroy_into_raw();
-        const ret = wasm.network_set_lifetime(ptr, lifetime);
-        return Network.__wrap(ret);
+        wasm.network_set_lifetime(this.__wbg_ptr, lifetime);
     }
     /**
      * @returns {boolean}
@@ -106,17 +144,18 @@ export class Network {
     /**
      * @param {number} x
      * @param {number} y
-     * @param {number | undefined} [cache_key]
+     * @returns {number}
+     */
+    add_cache(x, y) {
+        const ret = wasm.network_add_cache(this.__wbg_ptr, x, y);
+        return ret >>> 0;
+    }
+    /**
+     * @param {number} key
      * @returns {NumericProperty | undefined}
      */
-    get_property(x, y, cache_key) {
-        const ret = wasm.network_get_property(
-            this.__wbg_ptr,
-            x,
-            y,
-            !isLikeNone(cache_key),
-            isLikeNone(cache_key) ? 0 : cache_key,
-        );
+    get_property(key) {
+        const ret = wasm.network_get_property(this.__wbg_ptr, key);
         return ret === 0 ? undefined : NumericProperty.__wrap(ret);
     }
 }
@@ -260,6 +299,77 @@ export class NumericProperty {
     set state_dead(arg0) {
         wasm.__wbg_set_numericproperty_state_dead(this.__wbg_ptr, arg0);
     }
+    /**
+     * @returns {number}
+     */
+    get state_wall() {
+        const ret = wasm.__wbg_get_numericproperty_state_wall(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * @param {number} arg0
+     */
+    set state_wall(arg0) {
+        wasm.__wbg_set_numericproperty_state_wall(this.__wbg_ptr, arg0);
+    }
+}
+/**
+ */
+export class Weight {
+    static __wrap(ptr) {
+        ptr = ptr >>> 0;
+        const obj = Object.create(Weight.prototype);
+        obj.__wbg_ptr = ptr;
+
+        return obj;
+    }
+
+    __destroy_into_raw() {
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
+
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_weight_free(ptr);
+    }
+    /**
+     * @returns {number}
+     */
+    get index() {
+        const ret = wasm.__wbg_get_weight_index(this.__wbg_ptr);
+        return ret >>> 0;
+    }
+    /**
+     * @param {number} arg0
+     */
+    set index(arg0) {
+        wasm.__wbg_set_weight_index(this.__wbg_ptr, arg0);
+    }
+    /**
+     * @returns {number}
+     */
+    get weight() {
+        const ret = wasm.__wbg_get_weight_weight(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * @param {number} arg0
+     */
+    set weight(arg0) {
+        wasm.__wbg_set_weight_weight(this.__wbg_ptr, arg0);
+    }
+    /**
+     * @param {number} index
+     * @param {number} weight
+     * @returns {Weight}
+     */
+    static new(index, weight) {
+        const ret = wasm.weight_new(index, weight);
+        return Weight.__wrap(ret);
+    }
 }
 
 async function __wbg_load(module, imports) {
@@ -308,6 +418,7 @@ function __wbg_finalize_init(instance, module) {
     wasm = instance.exports;
     __wbg_init.__wbindgen_wasm_module = module;
     cachedInt32Memory0 = null;
+    cachedUint32Memory0 = null;
     cachedUint8Memory0 = null;
 
     return wasm;
